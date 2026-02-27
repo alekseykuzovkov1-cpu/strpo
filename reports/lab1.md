@@ -35,4 +35,9 @@
         ``git status показывает, что lab1.md был удалён
 #### 4.3. Восстановление файла lab1.md с помощью git restore
         ``git restore reports/lab1.md
+### 5. Ветвление версий
+#### 5.1. Создание новой ветки lab1-1 и переключение на нее
+        ``git branch lab1-1
+        ```git checkout lab1-1
+#### 5.2. 
 
