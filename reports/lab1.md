@@ -45,5 +45,7 @@
 #### 6.1. Откат изменений в README.md
         ``git restore README.md
 #### 6.2. Слияние ветки master с lab1-1
-        ``
+        ``git merge lab1-1
+#### 6.3. Изменение lab1-1
+        
 
