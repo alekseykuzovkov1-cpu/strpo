@@ -41,5 +41,14 @@ git push origin master
 - Block force pushes - запретить force push
 - Restrict deletions - запретить удаление ветки
 - Require a pull request before merging - требовать pull request
-    + Require approvals - 1 (требуется минимум одно одобрение)
-#### 2.3. 
+    + Require approvals - 0 (чтобы смочь принять самому)
+### 3. Запросы на слияние
+#### 3.1. Добавление изменений в ветку pr-test и отправка их в удаленный репозиторий
+* Были добавлены новые пункты в отчёт
+```
+git add .
+git commit -m "пуш из новой ветки"
+git push origin pr-test
+```
+#### 3.2. Слияние через `pull request`
+Через web-интерфейс GitHub был создан запрос на слияние (`pull request`) ветки pr-test с основной, после чего собственноручно принят. Слияние прошло успешно
