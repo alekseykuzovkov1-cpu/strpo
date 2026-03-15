@@ -42,6 +42,36 @@ git push origin master
 - Restrict deletions - запретить удаление ветки
 - Require a pull request before merging - требовать pull request
     + Require approvals - 0 (чтобы смочь принять самому)
+#### 2.3. Проверка защиты
+```
+echo "тест защиты" > test-protection.txt
+git add test-protection.txt
+git commit -m "добавление файла из ветки pr-test"
+git push origin master
+```
+Выполнение последней команды даёт следуюзий вывод:
+```
+Enumerating objects: 4, done.
+Counting objects: 100% (4/4), done.
+Delta compression using up to 12 threads
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 326 bytes | 326.00 KiB/s, done.
+Total 3 (delta 1), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (1/1), completed with 1 local object.
+remote: error: GH013: Repository rule violations found for refs/heads/master.
+remote: Review all repository rules at https://github.com/alekseykuzovkov1-cpu/strpo/rules?ref=refs%2Fheads%2Fmaster
+remote:
+remote: - Changes must be made through a pull request.
+remote:
+To https://github.com/alekseykuzovkov1-cpu/strpo.git
+ ! [remote rejected] master -> master (push declined due to repository rule violations)
+error: failed to push some refs to 'https://github.com/alekseykuzovkov1-cpu/strpo.git'
+```
+Из этого следует, что защита работает исправно
+#### 2.4. Создание новой ветки `pr-test` из основной
+```
+git checkout -b pr-test
+```
 ### 3. Запросы на слияние
 #### 3.1. Добавление изменений в ветку pr-test и отправка их в удаленный репозиторий
 * Были добавлены новые пункты в отчёт
@@ -52,3 +82,8 @@ git push origin pr-test
 ```
 #### 3.2. Слияние через `pull request`
 Через web-интерфейс GitHub был создан запрос на слияние (`pull request`) ветки pr-test с основной, после чего собственноручно принят. Слияние прошло успешно
+#### 3.3. Принятие последних обновлений основной ветки
+```
+git checkout master
+git pull origin master
+```
