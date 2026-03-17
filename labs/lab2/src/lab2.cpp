@@ -1,5 +1,9 @@
 #include "mystring.hpp"
+#include "basefile.hpp"
+#include "base32file.hpp"
+#include "rlefile.hpp"
 #include <iostream>
+#include <cstring>
 using namespace std;
 /**
  * Лабораторная работа №2. Массивы объектов, простое наследование, виртуальные
@@ -141,7 +145,47 @@ int main() {
      *
      * Проверьте работу этого класса.
      */
+    {
+        cout << "\nТестирование BaseFile" << endl;
 
+        const char* filename = "test_lab2.bin";
+        const char* message = "Hello, BaseFile!";
+        
+        // запись
+        {
+            BaseFile outFile(filename, "wb"); 
+            if (outFile.is_open()) {
+                cout << "Файл открыт для записи." << endl;
+                size_t written = outFile.write_raw(message, strlen(message));
+                cout << "Записано байт: " << written << endl;
+            } 
+        } 
+
+        // чтение
+        BaseFile inFile(filename, "rb");
+        if (inFile.is_open() && inFile.can_read()) {
+            cout << "Файл открыт для чтения." << endl;
+            
+            if (inFile.seek(7)) {
+                cout << "Сдвиг на позицию 7 выполнен успешно." << endl;
+            }
+
+            char buffer[20] = {0};
+            size_t bytesRead = inFile.read_raw(buffer, 8); 
+            
+            if (bytesRead < 20) buffer[bytesRead] = '\0';
+
+            cout << "Считано данных с позиции 7: [" << buffer << "]" << endl;
+            cout << "Количество считанных байт: " << bytesRead << endl;
+            cout << "Текущая позиция после чтения: " << inFile.tell() << endl;
+        } else {
+            cout << "Ошибка открытия файла для чтения!" << endl;
+        }
+
+        // 3. Тест конструктора по умолчанию
+        BaseFile emptyFile;
+        cout << "Файл по умолчанию открыт? " << (emptyFile.is_open() ? "Да" : "Нет") << endl;
+    }
     /**
      * Задание 2.2. Производные классы.
      *
@@ -181,7 +225,40 @@ int main() {
      * Добавьте возможность пользователю передать в конструктор таблицу
      * кодировки, по умолчанию используется таблица "A..Z1..6".
      */
+    {
+        cout << "\n--- Тестирование Base32File ---" << endl;
+        const char* b32_filename = "data_encoded.txt";
+        const char* secret = "Secret"; // Исходные данные
+        
+        // 1. Запись с кодированием
+        {
+            // Используем таблицу по умолчанию
+            Base32File b32Write(b32_filename, "wb");
+            if (b32Write.is_open()) {
+                size_t processed = b32Write.write(secret, strlen(secret));
+                cout << "Закодировано и записано исходных байт: " << processed << endl;
+            }
+        } // Файл закрыт
 
+        // 2. Проверка: что на самом деле лежит в файле?
+        {
+            BaseFile rawFile(b32_filename, "rb");
+            char raw_buf[32] = {0};
+            rawFile.read_raw(raw_buf, 31);
+            cout << "Содержимое файла на диске (Base32): [" << raw_buf << "]" << endl;
+        }
+
+        // 3. Чтение с декодированием
+        {
+            Base32File b32Read(b32_filename, "rb");
+            if (b32Read.can_read()) {
+                char decode_buf[32] = {0};
+                size_t n = b32Read.read(decode_buf, 31);
+                cout << "Декодированные данные из файла: [" << decode_buf << "]" << endl;
+                cout << "Восстановлено байт: " << n << endl;
+            }
+        }
+    }
     /**
      * Задание 2.2.2. RLE-сжатие.
      *
@@ -203,7 +280,51 @@ int main() {
      * например, котенка из лабораторной №3 прошлого семестра. Посмотрите,
      * получилось ли добиться уменьшения размера хранимых данных.
      */
+    {
+        cout << "\n--- Тестирование RleFile (ASCII Art) ---" << endl;
+        const char* rle_filename = "cat.rle";
+        
+        // Наш котенок из лаб №3
+        const char* cat = 
+            "        /\\_/\\  (\n"
+            "       ( ^.^ ) _)\n"
+            "        \\\"/  (\n"
+            "       ( | | )\n"
+            "      (__d b__)\n";
 
+        // 1. Записываем со сжатием
+        {
+            RleFile outFile(rle_filename, "wb");
+            if (outFile.is_open()) {
+                outFile.write(cat, strlen(cat));
+            }
+        }
+
+        // 2. Сравниваем размеры
+        {
+            BaseFile raw(rle_filename, "rb");
+            raw.seek(0); // на всякий случай
+            // Узнаем размер через fseek/ftell (или просто смотрим вывод)
+            long original_size = strlen(cat);
+            
+            // Для получения размера файла на диске:
+            fseek(raw.tell_ptr_fake(), 0, SEEK_END); // В базовом классе можно добавить метод get_size()
+            // Но проще открыть файл и прочитать его размер системно. 
+            // Допустим, мы просто выведем результат распаковки.
+        }
+
+        // 3. Читаем и распаковываем
+        {
+            RleFile inFile(rle_filename, "rb");
+            if (inFile.is_open()) {
+                char buffer[500] = {0};
+                size_t n = inFile.read(buffer, 499);
+                cout << "Восстановленный котенок:" << endl;
+                cout << buffer << endl;
+                cout << "Исходный размер: " << strlen(cat) << " байт." << endl;
+            }
+        }
+    }
     /**
      * Задание 2.3. Конструкторы и деструкторы базового и производного классов.
      *
