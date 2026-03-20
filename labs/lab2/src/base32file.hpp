@@ -15,6 +15,8 @@ public:
     // Конструкторы
     Base32File();
     Base32File(const char* path, const char* mode, const char* table = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456");
+    // Деструктор
+    virtual ~Base32File();
     
     // Переопределяем виртуальные методы для кодирования/декодирования
     // Эти методы будут использоваться вместо прямых read_raw/write_raw

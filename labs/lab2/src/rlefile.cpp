@@ -1,4 +1,21 @@
 #include "rlefile.hpp"
+#include <iostream>
+using namespace std;
+
+// Конструктор по умолчанию
+RleFile::RleFile() : BaseFile() {
+    cout << "[CONSTRUCTOR] RleFile (default)" << endl;
+}
+
+// Конструктор с параметрами
+RleFile::RleFile(const char* path, const char* mode) : BaseFile(path, mode) {
+    cout << "[CONSTRUCTOR] RleFile (path: " << path << ")" << endl;
+}
+
+// Деструктор
+RleFile::~RleFile() {
+    cout << "[DESTRUCTOR] RleFile" << endl;
+}
 
 size_t RleFile::write(const void* buf, size_t n_bytes) {
     if (!can_write() || n_bytes == 0) return 0;
@@ -33,18 +50,25 @@ size_t RleFile::read(void* buf, size_t max_bytes) {
     size_t decoded_bytes = 0;
 
     while (decoded_bytes < max_bytes) {
-        unsigned char count;
-        unsigned char value;
+        unsigned char count = 0;
+        unsigned char value = 0;
 
-        // Пытаемся считать пару [счетчик][значение]
+        // Пытаемся считать счетчик
         if (read_raw(&count, 1) != 1) break;
+        // Пытаемся считать значение
         if (read_raw(&value, 1) != 1) break;
 
-        // Распаковываем
-        for (int j = 0; j < count && decoded_bytes < max_bytes; ++j) {
-            out_buf[decoded_bytes++] = value;
+        // Распаковываем, не выходя за границы буфера пользователя
+        for (int j = 0; j < (int)count; ++j) {
+            if (decoded_bytes < max_bytes) {
+                out_buf[decoded_bytes++] = value;
+            } else {
+                // Если буфер кончился, а счетчик еще нет — это проблема 
+                // простейшего RLE без внутреннего буфера.
+                // В учебных целях считаем, что буфер достаточен.
+                break; 
+            }
         }
     }
-
     return decoded_bytes;
 }

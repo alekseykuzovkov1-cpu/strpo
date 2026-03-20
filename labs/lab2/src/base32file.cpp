@@ -1,5 +1,7 @@
 #include "base32file.hpp"
 #include <cstring>
+#include <iostream>
+using namespace std;
 
 void Base32File::init_decode_map() {
     for (int i = 0; i < 256; ++i) decode_map[i] = -1;
@@ -11,11 +13,14 @@ void Base32File::init_decode_map() {
 Base32File::Base32File() : BaseFile() {
     std::strcpy(custom_table, "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456");
     init_decode_map();
+    std::cout << "[CONSTRUCTOR] Base32File (default)" << std::endl;
 }
 
 Base32File::Base32File(const char* path, const char* mode, const char* table) 
     : BaseFile(path, mode) 
 {
+    cout << "[CONSTRUCTOR] Base32File" << endl;
+
     if (table && std::strlen(table) >= 32) {
         std::strncpy(custom_table, table, 32);
     } else {
@@ -23,6 +28,10 @@ Base32File::Base32File(const char* path, const char* mode, const char* table)
     }
     custom_table[32] = '\0';
     init_decode_map();
+}
+
+Base32File::~Base32File() {
+    std::cout << "[DESTRUCTOR] Base32File" << std::endl;
 }
 
 size_t Base32File::write(const void* buf, size_t n_bytes) {

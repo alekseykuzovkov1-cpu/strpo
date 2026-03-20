@@ -1,10 +1,15 @@
 #include "basefile.hpp"
 #include <cstring>
+#include <iostream>
 using namespace std;
 
-BaseFile::BaseFile() : file(nullptr), readable(false), writable(false) {}
+BaseFile::BaseFile() : file(nullptr), readable(false), writable(false) {
+    cout << "[CONSTRUCTOR] BaseFile (default)" << endl;
+}
 
 BaseFile::BaseFile(const char* path, const char* mode) {
+    cout << "[CONSTRUCTOR] BaseFile (path: " << path << ")" << endl;
+
     file = std::fopen(path, mode);
     
     // Инициализируем флаги ложью по умолчанию
@@ -24,9 +29,13 @@ BaseFile::BaseFile(const char* path, const char* mode) {
 }
 
 BaseFile::BaseFile(FILE* existing_file, bool r, bool w) 
-    : file(existing_file), readable(r), writable(w) {}
+    : file(existing_file), readable(r), writable(w) {
+        cout << "[CONSTRUCTOR] BaseFile (from existing FILE*)" << endl;
+    }
 
 BaseFile::~BaseFile() {
+    cout << "[DESTRUCTOR] BaseFile" << endl;
+
     if (file) {
         fclose(file);
         file = nullptr;

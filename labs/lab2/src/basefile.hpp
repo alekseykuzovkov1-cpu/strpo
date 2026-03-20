@@ -29,8 +29,8 @@ public:
     size_t read_raw(void* buf, size_t max_bytes);
     
     // Обертки для последующего переопределения
-    size_t write(const void* buf, size_t n_bytes);
-    size_t read(void* buf, size_t max_bytes);
+    virtual size_t write(const void* buf, size_t n_bytes);
+    virtual size_t read(void* buf, size_t max_bytes);
 
     // Навигация
     long tell() const;
