@@ -3,8 +3,9 @@
 
 #include <cstdio>
 #include <cstddef>
+#include "ifile.hpp"
 
-class BaseFile {
+class BaseFile : public IFile {
 protected:
     FILE* file;
     bool readable;
