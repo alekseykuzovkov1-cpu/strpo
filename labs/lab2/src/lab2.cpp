@@ -1,7 +1,9 @@
 #include "mystring.hpp"
 #include "basefile.hpp"
 #include "base32file.hpp"
+#include "base32file2.hpp"
 #include "rlefile.hpp"
+#include "rlefile2.hpp"
 #include <iostream>
 #include <cstring>
 using namespace std;
@@ -167,7 +169,7 @@ int main() {
     {
         cout << "\nТестирование BaseFile" << endl;
 
-        const char* filename = "test_lab2.bin";
+        const char* filename = "src/files/test_lab2.bin";
         const char* message = "Hello, BaseFile!";
         
         // запись
@@ -246,7 +248,7 @@ int main() {
      */
     {
         cout << "\n--- Тестирование Base32File ---" << endl;
-        const char* b32_filename = "data_encoded.txt";
+        const char* b32_filename = "src/files/data_encoded.txt";
         const char* secret = "Secret"; // Исходные данные
         
         // 1. Запись с кодированием
@@ -301,7 +303,7 @@ int main() {
      */
     {
         cout << "\nТестирование RleFile" << endl;
-        const char* rle_filename = "cat.rle";
+        const char* rle_filename = "src/files/cat.rle";
         
         // Наш котенок из лаб №3
         const char* cat = 
@@ -339,7 +341,7 @@ int main() {
             cout << "Оригинальный размер (cat): " << original_size << " байт." << endl;
             cout << "Размер после RLE-сжатия: " << compressed_size << " байт." << endl;
             
-            if (compressed_size < original_size) {
+            if (compressed_size < (size_t)original_size) {
                 cout << "Эффект достигнут! Сжатие составило " 
                      << (100.0 * (original_size - compressed_size) / original_size) << "%" << endl;
             }
@@ -351,7 +353,7 @@ int main() {
             RleFile inFile(rle_filename, "rb");
             if (inFile.is_open()) {
                 char buffer[500] = {0};
-                size_t n = inFile.read(buffer, 499);
+                inFile.read(buffer, 499);
                 cout << "Восстановленный котенок:" << endl;
                 cout << buffer << endl;
                 cout << "Исходный размер: " << strlen(cat) << " байт." << endl;
@@ -378,9 +380,9 @@ int main() {
      */
 
     {
-        BaseFile bf("int_plain.txt", "wb");
-        Base32File b32f("int_b32.txt", "wb");
-        RleFile rf("int_rle.txt", "wb");
+        BaseFile bf("src/files/int_plain.txt", "wb");
+        Base32File b32f("src/files/int_b32.txt", "wb");
+        RleFile rf("src/files/int_rle.txt", "wb");
 
         int n = 123456;
         if (n < 0) { 
@@ -441,9 +443,9 @@ int main() {
     {
         cout << "\n--- Задание 2.5: Передача объекта по ссылке ---" << endl;
 
-        BaseFile bf("int_plain_ref.txt", "wb");
-        Base32File b32f("int_b32_ref.txt", "wb");
-        RleFile rf("int_rle_ref.txt", "wb");
+        BaseFile bf("src/files/int_plain_ref.txt", "wb");
+        Base32File b32f("src/files/int_b32_ref.txt", "wb");
+        RleFile rf("src/files/int_rle_ref.txt", "wb");
 
         int number = 123456;
 
@@ -484,9 +486,9 @@ int main() {
         cout << "\nЗадание 2.7: Виртуальный деструктор" << endl;
 
         BaseFile *files[] = { 
-            new BaseFile("poly_plain.txt", "wb"), 
-            new RleFile("poly_rle.rle", "wb"), 
-            new Base32File("poly_b32.txt", "wb"), 
+            new BaseFile("src/files/poly_plain.txt", "wb"), 
+            new RleFile("src/files/poly_rle.rle", "wb"), 
+            new Base32File("src/files/poly_b32.txt", "wb"), 
         };
 
         for (int i = 0; i < 3; ++i) {
@@ -531,10 +533,10 @@ int main() {
         // Вместо массива объектов создаем массив УКАЗАТЕЛЕЙ
         BaseFile* poly_array[4];
 
-        poly_array[0] = new BaseFile("plain1.txt", "wb");
-        poly_array[1] = new BaseFile("plain2.txt", "wb");
-        poly_array[2] = new Base32File("b32_1.txt", "wb");
-        poly_array[3] = new Base32File("b32_2.txt", "wb");
+        poly_array[0] = new BaseFile("src/files/plain1.txt", "wb");
+        poly_array[1] = new BaseFile("src/files/plain2.txt", "wb");
+        poly_array[2] = new Base32File("src/files/b32_1.txt", "wb");
+        poly_array[3] = new Base32File("src/files/b32_2.txt", "wb");
 
         for (int i = 0; i < 4; ++i) {
             // Теперь это безопасно! Каждый указатель имеет фиксированный размер 8 байт,
@@ -611,12 +613,25 @@ int main() {
      * классов `Base32File` и `RleFile`.
      */
 
-    /* {
-        Base32File2 b32f(new BaseFile(...));
-        RleFile2 rf(new Base32File(...));
+    {
+        cout << "\n--- Задание 3.2: Проверка по шаблону лабораторной ---" << endl;
+
+        // 1. Создаем Base32File2, который внутри хранит и управляет BaseFile
+        Base32File2 b32f(new BaseFile("src/files/comp_check_b32.txt", "wb"));
+
+        // 2. Создаем RleFile2, который внутри хранит и управляет старым Base32File
+        // (Композиция позволяет смешивать новые и старые классы, если они от IFile)
+        RleFile2 rf(new Base32File("src/files/comp_check_rle_b32.txt", "wb"));
+
+        // Вызываем функцию, принимающую интерфейс IFile&
         write_int(b32f, 123456);
         write_int(rf, 123456);
-    } */
+
+        cout << "Запись завершена. Объекты b32f и rf сейчас выйдут из области видимости." << endl;
+        
+        // В этот момент автоматически вызовутся деструкторы b32f и rf,
+        // которые сделают 'delete target', очистив динамическую память.
+    }
 
     /**
      * Задание 3.3. Больше композиции!
@@ -627,7 +642,34 @@ int main() {
      */
 
     {
+        cout << "\n--- Задание 3.3: Супер-композиция (Base32 x2 + RLE) ---" << endl;
 
+        // Собираем матрешку:
+        // 1. Основа — обычный файл на диске
+        // 2. Вкладываем его в RleFile2 (сжатие перед записью на диск)
+        // 3. Вкладываем RLE в Base32File2 (первое кодирование)
+        // 4. Вкладываем всё это в еще один Base32File2 (второе кодирование)
+
+        IFile* super_file = new Base32File2(      // 1-й этап: Base32
+                                new Base32File2(  // 2-й этап: Base32
+                                    new RleFile2( // 3-й этап: RLE
+                                        new BaseFile("src/files/super_comp.bin", "wb") // Конец: Файл
+                                    )
+                                )
+                            );
+
+        // Теперь вызываем метод write (через write_int)
+        // Данные пройдут по цепочке: B32 -> B32 -> RLE -> Диск
+        write_int(*super_file, 123456);
+
+        cout << "Запись в супер-цепочку завершена." << endl;
+
+        // Удаляем самый внешний объект. 
+        // Благодаря нашему коду в деструкторах (delete target), 
+        // это вызовет лавинообразное удаление всей цепочки из 4-х объектов.
+        delete super_file; 
+        
+        cout << "Вся цепочка объектов успешно удалена из памяти." << endl;
     }
 
     /**
@@ -642,7 +684,7 @@ int main() {
      *    (256 байт).
      * 3. Прочитайте этот файл объектом этого же класса, последовательно вызывая
      *    метод `read` с буфером малого размера (256 байт). Сравните побайтово
-     *    содержимое, прочитанное таким образом, с массивом, полученным в п. 1.
+     *    содержимое, прочитанное таким образом, с массивом, полученyным в п. 1.
      *
      * Проверку для каждого типа файла оформите в виде отдельного
      * автоматического теста, настройте запуск для всех тестов в виде отдельной
