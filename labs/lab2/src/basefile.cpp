@@ -4,15 +4,15 @@
 using namespace std;
 
 BaseFile::BaseFile() : file(nullptr), readable(false), writable(false) {
-    cout << "[CONSTRUCTOR] BaseFile (default)" << endl;
+    cout << "Конструктор BaseFile (по умолчанию)" << endl;
 }
 
 BaseFile::BaseFile(const char* path, const char* mode) {
-    cout << "[CONSTRUCTOR] BaseFile (path: " << path << ")" << endl;
+    cout << "Конструктор BaseFile (путь: " << path << ")" << endl;
 
     file = std::fopen(path, mode);
     
-    // Инициализируем флаги ложью по умолчанию
+    // инициализируем флаги ложью по умолчанию
     readable = false;
     writable = false;
     
@@ -30,11 +30,11 @@ BaseFile::BaseFile(const char* path, const char* mode) {
 
 BaseFile::BaseFile(FILE* existing_file, bool r, bool w) 
     : file(existing_file), readable(r), writable(w) {
-        cout << "[CONSTRUCTOR] BaseFile (from existing FILE*)" << endl;
+        cout << "Конструктор BaseFile (из существующего FILE*)" << endl;
     }
 
 BaseFile::~BaseFile() {
-    cout << "[DESTRUCTOR] BaseFile" << endl;
+    cout << "Деструктор BaseFile" << endl;
 
     if (file) {
         fclose(file);

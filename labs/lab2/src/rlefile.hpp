@@ -5,13 +5,13 @@
 
 class RleFile : public BaseFile {
 public:
-    // Используем конструкторы базового класса
+    // используем конструкторы базового класса
     RleFile();
     RleFile(const char* path, const char* mode);
 
     virtual ~RleFile();
 
-    // Переопределяем методы для сжатия/распаковки
+    // переопределяем методы для сжатия/распаковки
     size_t write(const void* buf, size_t n_bytes);
     size_t read(void* buf, size_t max_bytes);
 };

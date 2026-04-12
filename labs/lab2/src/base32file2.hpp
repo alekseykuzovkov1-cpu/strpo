@@ -5,7 +5,7 @@
 
 class Base32File2 : public IFile {
 private:
-    IFile* target; // Объект, в который пойдет запись
+    IFile* target; // объект, в который пойдет запись
     char custom_table[33];
     char decode_map[256];
     void init_decode_map();
