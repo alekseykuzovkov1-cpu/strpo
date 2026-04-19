@@ -49,7 +49,7 @@ git add test-protection.txt
 git commit -m "добавление файла из ветки pr-test"
 git push origin master
 ```
-Выполнение последней команды даёт следуюзий вывод:
+Выполнение последней команды даёт следующий вывод:
 ```
 Enumerating objects: 4, done.
 Counting objects: 100% (4/4), done.
@@ -87,3 +87,8 @@ git push origin pr-test
 git checkout master
 git pull origin master
 ```
+### 4. Pull Request
+
+#### 4.1. Выполнение лабораторной работы №2 по Структурам Данных
+* За время выполнения лабораторной было сделано 6 коммитов
+#### 4.2. Отправка PR
