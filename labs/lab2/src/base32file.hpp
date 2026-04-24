@@ -8,6 +8,13 @@ private:
     char custom_table[33];
     int decode_map[256];
 
+    unsigned int write_bit_buffer = 0;
+    int write_bit_count = 0;
+
+    unsigned int bit_buffer = 0;
+    int bit_count = 0;
+    bool eof_reached = false;
+
     // вспомогательный метод для быстрой расшифровки символов
     void init_decode_map();
 

@@ -3,17 +3,22 @@
 using namespace std;
 
 // конструктор по умолчанию
-RleFile::RleFile() : BaseFile() {
+RleFile::RleFile() : BaseFile(), remaining_count(0), last_char(0) {
     cout << "Конструктор RleFile (по умолчанию)" << endl;
 }
 
 // конструктор с параметрами
-RleFile::RleFile(const char* path, const char* mode) : BaseFile(path, mode) {
+RleFile::RleFile(const char* path, const char* mode) : BaseFile(path, mode), remaining_count(0), last_char(0) {
     cout << "Конструктор RleFile (путь: " << path << ")" << endl;
 }
 
 // деструктор
 RleFile::~RleFile() {
+    if (write_count > 0) {
+        unsigned char count_byte = (unsigned char)write_count;
+        write_raw(&count_byte, 1);
+        write_raw(&write_last_char, 1);
+    }
     cout << "Деструктор RleFile" << endl;
 }
 
@@ -21,51 +26,64 @@ size_t RleFile::write(const void* buf, size_t n_bytes) {
     if (!can_write() || n_bytes == 0) return 0;
 
     const unsigned char* data = (const unsigned char*)buf;
-    size_t i = 0;
-    size_t total_written_raw = 0;
+    
+    for (size_t i = 0; i < n_bytes; ++i) {
+        unsigned char current = data[i];
 
-    while (i < n_bytes) {
-        unsigned char current_char = data[i];
-        unsigned char count = 1;
-
-        // считаем одинаковые символы (макс. 255)
-        while (i + 1 < n_bytes && data[i + 1] == current_char && count < 255) {
-            count++;
-            i++;
+        // если это первый запуск или символ тот же, что был в конце прошлого буфера
+        if (write_count > 0 && current != write_last_char) {
+            // символ сменился -> сбрасываем старую накопленную пачку
+            unsigned char count_byte = (unsigned char)write_count;
+            write_raw(&count_byte, 1);
+            write_raw(&write_last_char, 1);
+            write_count = 0;
         }
 
-        // записываем пару [счетчик][символ]
-        total_written_raw += write_raw(&count, 1);
-        total_written_raw += write_raw(&current_char, 1);
-        i++;
+        // накапливаем
+        write_last_char = current;
+        write_count++;
+
+        // если счетчик переполнился, то принудительно сбрасываем
+        if (write_count == 255) {
+            unsigned char count_byte = 255;
+            write_raw(&count_byte, 1);
+            write_raw(&write_last_char, 1);
+            write_count = 0;
+        }
     }
 
-    return n_bytes; // возвращаем количество обработанных исходных байт
+    return n_bytes;
 }
 
 size_t RleFile::read(void* buf, size_t max_bytes) {
-    if (!can_read() || max_bytes == 0) return 0;
+    unsigned char* dst = (unsigned char*)buf;
+    size_t total_out = 0;
 
-    unsigned char* out_buf = (unsigned char*)buf;
-    size_t decoded_bytes = 0;
+    // достаем остатки из прошлого вызова
+    while (remaining_count > 0 && total_out < max_bytes) {
+        dst[total_out++] = last_char;
+        remaining_count--;
+    }
 
-    while (decoded_bytes < max_bytes) {
-        unsigned char count = 0;
-        unsigned char value = 0;
+    // если место в буфере еще есть, читаем новые пачки из файла
+    while (total_out < max_bytes) {
+        unsigned char pack[2]; // [счетчик, символ]
+        if (read_raw(pack, 2) < 2) break; // конец файла
 
-        // пытаемся считать счетчик
-        if (read_raw(&count, 1) != 1) break;
-        // пытаемся считать значение
-        if (read_raw(&value, 1) != 1) break;
+        int count = pack[0];
+        unsigned char val = pack[1];
 
-        // распаковываем
-        for (int j = 0; j < (int)count; ++j) {
-            if (decoded_bytes < max_bytes) {
-                out_buf[decoded_bytes++] = value;
-            } else {
-                break; 
-            }
+        // заполняем столько, сколько влезет
+        while (count > 0 && total_out < max_bytes) {
+            dst[total_out++] = val;
+            count--;
+        }
+
+        // если пачка не влезла целиком, то запоминаем остаток
+        if (count > 0) {
+            remaining_count = count;
+            last_char = val;
         }
     }
-    return decoded_bytes;
+    return total_out;
 }

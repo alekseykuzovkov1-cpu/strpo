@@ -4,6 +4,12 @@
 #include "basefile.hpp"
 
 class RleFile : public BaseFile {
+private:
+    int remaining_count = 0;
+    unsigned char last_char = 0;
+
+    unsigned char write_last_char = 0;
+    int write_count = 0;
 public:
     // используем конструкторы базового класса
     RleFile();
