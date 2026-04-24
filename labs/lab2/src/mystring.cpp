@@ -60,9 +60,6 @@ void MyString::resize(size_t new_capacity) {
 // пустая строка
 MyString::MyString() 
     : data_(nullptr), size_(0), capacity_(0) {
-    // TODO: сделать без выделения динамической памяти
-    
-    // выделяем минимальную память для пустой строки
 }
 
 MyString::MyString(const char* str) 
