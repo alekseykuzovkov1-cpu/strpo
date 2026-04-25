@@ -2,6 +2,7 @@
 #include <iostream>
 #include <cstring>
 #include <cstdio>
+#include <string>
 using namespace std;
 
 // выделение памяти с заданной вместимостью
@@ -233,4 +234,25 @@ MyString& MyString::operator=(MyString&& other) noexcept {
         other.capacity_ = 0;
     }
     return *this;
+}
+
+char& MyString::operator[](size_t index) {
+    if (index >= size_) {
+        throw std::out_of_range("Индекс выходит за границы строки");
+    }
+    return data_[index];
+}
+
+std::ostream& operator<<(std::ostream& os, const MyString& str) {
+    os << str.c_str();
+    return os;
+}
+
+std::istream& operator>>(std::istream& is, MyString& str) {
+    std::string temp;
+    std::getline(is, temp);
+    
+    str = temp.c_str(); 
+    
+    return is;
 }

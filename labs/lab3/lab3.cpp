@@ -19,6 +19,32 @@ using namespace std;
 #include <iostream>
 #include "matrix.hpp"
 #include "mystring.hpp"
+#include "workerdb.hpp"
+#include "notifications.hpp"
+
+void print_db(WorkerDb& db) {
+    std::cout << "Содержание базы" << std::endl;
+    for (auto it = db.begin(); it != db.end(); ++it) {
+        std::cout << "Фамилия: " << it.key() 
+                  << " | Имя: " << it->name 
+                  << " | Возраст: " << it->age << std::endl;
+    }
+}
+
+
+double get_avg_age(WorkerDb& db) {
+    int total_age = 0;
+    int count = 0;
+
+    for (auto it = db.begin(); it != db.end(); ++it) {
+        total_age += it->age;
+        count++;
+    }
+
+    if (count == 0) return 0.0;
+
+    return static_cast<double>(total_age) / count;
+}
 
 int main() {
 
@@ -159,7 +185,7 @@ int main() {
      * Операторы должны сравнивать строки лексикoграфически.
      */
 
-    /* {
+    {
         MyString s1("abc"), s2("ab"), s3 = s1;
         assert(s2 < s1);
         assert(s1 == s3);
@@ -168,7 +194,7 @@ int main() {
         assert("ab" == s2);
         assert("aba" < s1);
         assert("aba" <= s3);
-    } */
+    }
 
     /**
      * Задание 1.5. Оператор индексирования.
@@ -178,10 +204,10 @@ int main() {
      * массива, киньте какое-нибудь исключение.
      */
 
-    /* {
+    {
         MyString s1("abc");
         s1[0] = s1[1] = 'd';
-    } */
+    }
 
     /**
      * Задание 1.6. Операторы ввода и вывода с потоками стандартной библиотеки.
@@ -195,14 +221,13 @@ int main() {
      * Проверьте работу этих операторов на следующем примере.
      */
 
-    /* {
+    {
         MyString s("123");
-        std::cout << "This is my string: ' << s << "'\n";
+        std::cout << "This is my string: '" << s << "'\n";
         std::cout << "Enter your string: ";
         std::cin >> s;
         std::cout << "Your string: '" << s << "'\n";
-    } */
-
+    }
     /**
      * Задание 2. Константные методы.
      *
@@ -212,8 +237,8 @@ int main() {
      * После этого следующая функция должна собираться:
      *
      * MyString addTxtExtension(const MyString &path) { return path + ".txt"; }
+     * собралась
      */
-
     /**
      * Задание 3. Ассоциативный массив. Итератор. Операторы инкремента.
      */
@@ -234,13 +259,13 @@ int main() {
      * Используйте для хранения строковых данных ваш класс MyString.
      */
 
-    /* {
+    {
         WorkerDb db;
-        db["Ivanov"] = WorkerData("Ivan", 34, ...);
-        db["Petrov"] = WorkerData("Petr", 43, ...);
+        db["Ivanov"] = WorkerData("Ivan", 34);
+        db["Petrov"] = WorkerData("Petr", 43);
         std::cout << "Ivanov's name = " << db["Ivanov"].name << "\n";
         std::cout << "Petrov's age = " << db["Petrov"].age << "\n";
-    } */
+    }
 
     /**
      * Задание 3.2. Итератор.
@@ -284,15 +309,15 @@ int main() {
      * Проверьте ниже работу итератора.
      */
 
-    /* {
+    {
         WorkerDb db;
-        db["Ivanov"] = WorkerData("Ivan", 34, ...);
-        db["Petrov"] = WorkerData("Petr", 43, ...);
+        db["Ivanov"] = WorkerData("Ivan", 34);
+        db["Petrov"] = WorkerData("Petr", 43);
         for (auto it = db.begin(); it != db.end(); ++it)
         {
             std::cout << it.key() << " -> " << it->name << '\n';
         }
-    } */
+    }
 
     /**
      * Задание 3.3. Работа "прикладного программиста".
@@ -303,7 +328,16 @@ int main() {
      * возраст сотрудников. Эти функции не должны быть дружественными классу
      * `WorkerDb`.
      */
+    {
+    WorkerDb db;
+    db["Ivanov"] = WorkerData("Ivan", 34);
+    db["Petrov"] = WorkerData("Petr", 43);
+    db["Sidorov"] = WorkerData("Alex", 25);
 
+    print_db(db);
+
+    std::cout << "\nAverage age: " << get_avg_age(db) << std::endl;
+    }
     /**
      * Задание 4. Объединения, полиморфизм в "старом" стиле, очередь с
      * приоритетами.
@@ -333,6 +367,19 @@ int main() {
      * подсчета уведомлений заданного типа в массиве. Проверьте работу этих
      * функций.
      */
+    {
+    Notification feed[3];
+    feed[0] = createSystemNotification("Диск заполнен, освободите пространство", URGENT);
+    feed[1] = createMessageNotification("vsennov", "лабораторная №3 принята");
+    feed[2] = createAppNotification("ВКонтакте", "Заявка в друзья", "Бьёрн Страуструп хочет добавить вас в друзья");
+
+    for (int i = 0; i < 3; ++i) {
+        printNotification(feed[i]);
+    }
+
+    int msgCount = countNotifications(feed, 3, TYPE_MESSAGE);
+    std::cout << "Найдено сообщений данного типа: " << msgCount << std::endl;
+    }
 
     /**
      * Задание 4.2. Отличие от наследования.
