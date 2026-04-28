@@ -236,7 +236,7 @@ Matrix Matrix::operator/(double scalar) const {
 
 // Move-конструктор
 Matrix::Matrix(Matrix&& other) noexcept 
-    : data_(other.data_), rows_(other.rows_), cols_(other.cols_) {
+    : rows_(other.rows_), cols_(other.cols_), data_(other.data_) {
     other.data_ = nullptr;
     other.rows_ = 0;
     other.cols_ = 0;

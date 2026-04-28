@@ -61,7 +61,6 @@ void MyString::resize(size_t new_capacity) {
 // пустая строка
 MyString::MyString() 
     : data_(nullptr), size_(0), capacity_(0) {
-    // TODO: сделать без выделения динамической памяти
 }
 
 MyString::MyString(const char* str) 
@@ -238,19 +237,19 @@ MyString& MyString::operator=(MyString&& other) noexcept {
 
 char& MyString::operator[](size_t index) {
     if (index >= size_) {
-        throw std::out_of_range("Индекс выходит за границы строки");
+        throw out_of_range("Индекс выходит за границы строки");
     }
     return data_[index];
 }
 
-std::ostream& operator<<(std::ostream& os, const MyString& str) {
+ostream& operator<<(ostream& os, const MyString& str) {
     os << str.c_str();
     return os;
 }
 
-std::istream& operator>>(std::istream& is, MyString& str) {
-    std::string temp;
-    std::getline(is, temp);
+istream& operator>>(istream& is, MyString& str) {
+    string temp;
+    getline(is, temp);
     
     str = temp.c_str(); 
     

@@ -1,3 +1,4 @@
+/*
 #include <ctime>
 #include <cstring>
 #include <iostream>
@@ -22,7 +23,7 @@ struct AppData {
 };
 
 struct Notification {
-    std::time_t timestamp;
+    time_t timestamp;
     NotificationType type;
     union {
         SystemData sys;
@@ -36,3 +37,4 @@ Notification createAppNotification(const char* app, const char* title, const cha
 
 void printNotification(const Notification& n);
 int countNotifications(const Notification* arr, size_t size, NotificationType type);
+*/

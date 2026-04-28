@@ -21,14 +21,27 @@ using namespace std;
 #include "mystring.hpp"
 #include "workerdb.hpp"
 #include "notifications.hpp"
+#include "notifications_oop.hpp"
+#include "notificationsqueue.hpp"
+#include "basefile.hpp"
+#include "boolarray.hpp"
 
 void print_db(WorkerDb& db) {
-    std::cout << "Содержание базы" << std::endl;
+    cout << "Содержание базы" << endl;
     for (auto it = db.begin(); it != db.end(); ++it) {
-        std::cout << "Фамилия: " << it.key() 
+        cout << "Фамилия: " << it.key() 
                   << " | Имя: " << it->name 
-                  << " | Возраст: " << it->age << std::endl;
+                  << " | Возраст: " << it->age << endl;
     }
+}
+
+void print_array(const BoolArray& arr, const char* name = "array") {
+    cout << name << " = [";
+    for (size_t i = 0; i < arr.size(); ++i) {
+        if (i > 0) cout << ", ";
+        cout << arr[i];
+    }
+    cout << "]\n";
 }
 
 
@@ -167,11 +180,11 @@ int main() {
         MyString s1("abc");
         MyString s2 = s1 + "ccc";
         s1 = "abc" + s2;
-        s2 = std::move(s1);
+        s2 = move(s1);
 
         Matrix m1(4), m2 = m1 + m1;
         m1 = m2 * m1;
-        m2 = std::move(m1);
+        m2 = move(m1);
     }
 
     /*До реализации move-семантики d выражении s1 = "abc" + s2; создавался временный объект для результата суммы (1 выделение памяти), затем этот объект копировался в s1 через обычный operator= (ещё 1 выделение памяти), итого 2 выделения памяти. После реализации move-семантики для результата суммы выделяется память (1 выделение), а затем при присваивании s1 = ... вызывается move-оператор присваивания. В нём нет выделения памяти, он просто переставляет указатели, поэтому выделение памяти всего одно*/
@@ -213,20 +226,20 @@ int main() {
      * Задание 1.6. Операторы ввода и вывода с потоками стандартной библиотеки.
      *
      * Реализуйте для класса `MyString` операторы `<<`, который позволит
-     * выводить строку в поток вывода `std::ostream`.
+     * выводить строку в поток вывода `ostream`.
      *
      * Реализуйте для класса `MyString` оператор `>>`, который позволит вводить
-     * строку до первого переноса строки из потока ввода `std::istream`.
+     * строку до первого переноса строки из потока ввода `istream`.
      *
      * Проверьте работу этих операторов на следующем примере.
      */
 
     {
         MyString s("123");
-        std::cout << "This is my string: '" << s << "'\n";
-        std::cout << "Enter your string: ";
-        std::cin >> s;
-        std::cout << "Your string: '" << s << "'\n";
+        cout << "This is my string: '" << s << "'\n";
+        cout << "Enter your string: ";
+        cin >> s;
+        cout << "Your string: '" << s << "'\n";
     }
     /**
      * Задание 2. Константные методы.
@@ -263,8 +276,8 @@ int main() {
         WorkerDb db;
         db["Ivanov"] = WorkerData("Ivan", 34);
         db["Petrov"] = WorkerData("Petr", 43);
-        std::cout << "Ivanov's name = " << db["Ivanov"].name << "\n";
-        std::cout << "Petrov's age = " << db["Petrov"].age << "\n";
+        cout << "Ivanov's name = " << db["Ivanov"].name << "\n";
+        cout << "Petrov's age = " << db["Petrov"].age << "\n";
     }
 
     /**
@@ -289,7 +302,7 @@ int main() {
      *      begin != end;
      *      ++begin)
      *  {
-     *      std::cout << *begin << ' ';
+     *      cout << *begin << ' ';
      *  }
      *
      * ```
@@ -315,7 +328,7 @@ int main() {
         db["Petrov"] = WorkerData("Petr", 43);
         for (auto it = db.begin(); it != db.end(); ++it)
         {
-            std::cout << it.key() << " -> " << it->name << '\n';
+            cout << it.key() << " -> " << it->name << '\n';
         }
     }
 
@@ -336,7 +349,7 @@ int main() {
 
     print_db(db);
 
-    std::cout << "\nAverage age: " << get_avg_age(db) << std::endl;
+    cout << "\nСредний возраст: " << get_avg_age(db) << endl;
     }
     /**
      * Задание 4. Объединения, полиморфизм в "старом" стиле, очередь с
@@ -367,6 +380,7 @@ int main() {
      * подсчета уведомлений заданного типа в массиве. Проверьте работу этих
      * функций.
      */
+    /*
     {
     Notification feed[3];
     feed[0] = createSystemNotification("Диск заполнен, освободите пространство", URGENT);
@@ -378,7 +392,27 @@ int main() {
     }
 
     int msgCount = countNotifications(feed, 3, TYPE_MESSAGE);
-    std::cout << "Найдено сообщений данного типа: " << msgCount << std::endl;
+    cout << "Найдено сообщений мгновенных: " << msgCount << endl;
+    }
+    */
+    {
+        const size_t SIZE = 3;
+        Notification* feed[SIZE];
+
+        feed[0] = new SystemNotification("Диск заполнен, освободите пространство", URGENT);
+        feed[1] = new MessageNotification("vsennov", "лабораторная №3 принята");
+        feed[2] = new AppNotification("ВКонтакте", "Заявка в друзья", "Бьёрн Страуструп хочет добавить вас в друзья");
+
+        for (size_t i = 0; i < SIZE; ++i) {
+            feed[i]->print();
+        }
+
+        int appCount = countNotifications(feed, SIZE, TYPE_APP);
+        cout << "\nНайдено сообщений от приложений: " << appCount << "\n";
+
+        for (size_t i = 0; i < SIZE; ++i) {
+            delete feed[i];
+    }
     }
 
     /**
@@ -386,6 +420,7 @@ int main() {
      *
      * Как эту же задачу можно было бы решить с помощью наследования классов? В чем
      * преимущества и недостатки каждого из методов?
+     * Наследование с виртуальными функциями делает код безопаснее, позволяет использовать сложные типы (строки с динамической памятью) и легко добавлять новые типы уведомлений без изменения старого кода, но требует работы с указателями и динамической памятью, в то время как объединения (union) работают быстрее и проще лежат в памяти, но добавление новых фич сложнее
      */
 
     /**
@@ -403,7 +438,32 @@ int main() {
      *
      * Проверьте работу этого класса.
      */
+    {
+        NotificationQueue queue;
 
+        queue.push(new SystemNotification("отвал процессора", URGENT));
+        queue.push(new MessageNotification("беб", "бебеб"));
+        queue.push(new AppNotification("буб", "беб", "биб"));
+
+        // begin, end
+        cout << "Итерация по очереди\n";
+        for (auto it = queue.begin(); it != queue.end(); ++it) {
+            (*it)->print(); 
+        }
+
+        // pop
+        cout << "\nОбработка элементов (FIFO)\n";
+        while (queue.size() > 0) {
+            Notification* n = queue.pop();
+            
+            cout << "Извлечено: ";
+            n->print();
+            
+            delete n; 
+        }
+
+        cout << "\nРазмер очереди после полной обработки: " << queue.size() << endl;
+    }
     /**
      * Задание 4.4. Определение приоритета.
      *
@@ -429,14 +489,36 @@ int main() {
      *
      * Проверьте, определен ли оператор присваивания для класса `BaseFile` из
      * работы 2? Что он делает? Имеется ли смысл в таком операторе?
-     *
+     *оператор присваивания явно не написан, поэтому компилятор генерирует его автоматически. Он выполняет поверхностное копирование, т.е. он просто побитово копирует значения всех полей из одного объекта в другой. Для класса, описывающего файл, такое копирование не имеет смысла и является опасным архитектурным решением, т.к. если в классе есть указатели, поверхностное копирование приведет к тому, что два объекта будут указывать на один и тот же участок памяти и тогда при уничтожении их деструкторы дважды попытаются освободить одну и ту же память
      * Явно удалите оператор присваивания и конструктор копирования ключевым
      * словом `delete`, но определите их move-аналоги в этом классе.
      * Продемонстрируйте их работу.
      */
 
-    {
+    {    
+        BaseFile f1("test_move.txt", "w");
+        if (f1.is_open()) {
+            f1.write("Hello Move!", 11);
+        }
 
+        // раскомментирование строк ниже вызовет ошибку компиляции (копирование запрещено)
+        // BaseFile f2 = f1; 
+        // BaseFile f3; f3 = f1; 
+
+        //Move-конструктор
+        std::cout << "\nВыполняем: BaseFile f_moved = std::move(f1);\n";
+        BaseFile f_moved = std::move(f1);
+        
+        std::cout << "Состояние f1 после перемещения: open=" << f1.is_open() << "\n"; // Должно быть 0
+        std::cout << "Состояние f_moved: open=" << f_moved.is_open() << "\n";       // Должно быть 1
+
+        // 4. Move-оператор присваивания
+        BaseFile f_assign;
+        std::cout << "\nВыполняем: f_assign = std::move(f_moved);\n";
+        f_assign = std::move(f_moved);
+        
+        std::cout << "Состояние f_moved: open=" << f_moved.is_open() << "\n";       // должно быть 0
+        std::cout << "Состояние f_assign: open=" << f_assign.is_open() << "\n";     // должно быть 1
     }
 
     /**
@@ -454,7 +536,7 @@ int main() {
      * Класс должен поддерживать следующее поведение:
      */
 
-    /* {
+    {
         /// Создается массив из 10 значений false
         BoolArray ar1(10);
 
@@ -468,25 +550,25 @@ int main() {
         ar1[4] = ar1[6] = true;
 
         /// Над полученными значениями выполняем логические операции
-        ar1[2] = (!ar1[6] && ar1[8] || (ar1[0] != true));
+        ar1[2] = ((!ar1[6] && ar1[8]) || (ar1[0] != true));
 
         /// Выведем массив на печать
-        std::cout << "[";
-        for (int i = 0; i < ar1.size(); ++i) {
-            if (i > 0) std::cout << ", ";
-            std::cout << ar1[i];
+        cout << "[";
+        for (size_t i = 0; i < ar1.size(); ++i) {
+            if (i > 0) cout << ", ";
+            cout << ar1[i];
         }
-        std::cout << "]\n";
+        cout << "]\n";
 
         /// Выведем массив на печать по-другому
-        std::cout << "[";
-        for (int i = 0, printed = 0; i < ar1.size(); ++i) {
+        cout << "[";
+        for (size_t i = 0, printed = 0; i < ar1.size(); ++i) {
             if (ar1[i]) {
-                if (printed++ > 0) std::cout << ", ";
-                std::cout << i;
+                if (printed++ > 0) cout << ", ";
+                cout << i;
             }
         }
-        std::cout << "]\n";
+        cout << "]\n";
 
 
        /// Метод `resize` изменяет размер массива. Если новый размер больше, то
@@ -495,15 +577,15 @@ int main() {
 
         ar1.resize(12, true);
         /// выведите массив на печать
-
+        print_array(ar1, "ar1");
         //...
 
         ar1.resize(4, true);
         /// выведите массив на печать снова
-
+        print_array(ar1, "ar1");
         //...
 
-    } */
+    }
 
 	return 0;
 }

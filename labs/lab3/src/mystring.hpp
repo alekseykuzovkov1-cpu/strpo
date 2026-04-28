@@ -3,6 +3,8 @@
 #include <stdexcept>
 #include <iostream>
 
+using namespace std;
+
 #ifndef MYSTRING_HPP
 #define MYSTRING_HPP
 
@@ -50,7 +52,7 @@ public:
 
     char& operator[](size_t index);
     const char& operator[](size_t index) const {
-        if (index >= size_) throw std::out_of_range("...");
+        if (index >= size_) throw out_of_range("Индекс выходит за границы");
         return data_[index];
     }
 };
@@ -59,13 +61,13 @@ MyString operator+(const MyString& lhs, const char* rhs);
 MyString operator+(const char* lhs, const MyString& rhs);
 
 inline bool operator==(const MyString& lhs, const MyString& rhs) {
-    return std::strcmp(lhs.c_str(), rhs.c_str()) == 0;
+    return strcmp(lhs.c_str(), rhs.c_str()) == 0;
 }
 inline bool operator==(const MyString& lhs, const char* rhs) {
-    return std::strcmp(lhs.c_str(), rhs) == 0;
+    return strcmp(lhs.c_str(), rhs) == 0;
 }
 inline bool operator==(const char* lhs, const MyString& rhs) {
-    return std::strcmp(lhs, rhs.c_str()) == 0;
+    return strcmp(lhs, rhs.c_str()) == 0;
 }
 
 
@@ -75,26 +77,26 @@ inline bool operator!=(const char* lhs, const MyString& rhs) { return !(lhs == r
 
 
 inline bool operator<(const MyString& lhs, const MyString& rhs) {
-    return std::strcmp(lhs.c_str(), rhs.c_str()) < 0;
+    return strcmp(lhs.c_str(), rhs.c_str()) < 0;
 }
 inline bool operator<(const MyString& lhs, const char* rhs) {
-    return std::strcmp(lhs.c_str(), rhs) < 0;
+    return strcmp(lhs.c_str(), rhs) < 0;
 }
 inline bool operator<(const char* lhs, const MyString& rhs) {
-    return std::strcmp(lhs, rhs.c_str()) < 0;
+    return strcmp(lhs, rhs.c_str()) < 0;
 }
 
 
 inline bool operator<=(const MyString& lhs, const MyString& rhs) {
-    return std::strcmp(lhs.c_str(), rhs.c_str()) <= 0;
+    return strcmp(lhs.c_str(), rhs.c_str()) <= 0;
 }
 inline bool operator<=(const MyString& lhs, const char* rhs) {
-    return std::strcmp(lhs.c_str(), rhs) <= 0;
+    return strcmp(lhs.c_str(), rhs) <= 0;
 }
 inline bool operator<=(const char* lhs, const MyString& rhs) {
-    return std::strcmp(lhs, rhs.c_str()) <= 0;
+    return strcmp(lhs, rhs.c_str()) <= 0;
 }
 
-std::ostream& operator<<(std::ostream& os, const MyString& str);
-std::istream& operator>>(std::istream& is, MyString& str);
+ostream& operator<<(ostream& os, const MyString& str);
+istream& operator>>(istream& is, MyString& str);
 #endif
