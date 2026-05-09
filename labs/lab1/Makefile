@@ -68,7 +68,7 @@ test: test-rect test-properties test-operations test-bounding
 # улучшение: автоматическая генерация зависимостей от .hpp файлов
 CPPFLAGS = -MMD -MP
 DEPENDS  = $(patsubst $(OBJ_DIR)/%.o, $(OBJ_DIR)/%.d, $(OBJECTS))
-
+#TODO сделан
 # TODO: узнать, что это, как работает, в каких сборках Make доступно
 -include $(DEPENDS)
 # подключает файлы зависимостей .d, которые автоматически создает компилятор. В них записано, от каких заголовочных файлов .hpp зависит каждый .cpp файл. Доступно во всех современных версиях GNU Make
