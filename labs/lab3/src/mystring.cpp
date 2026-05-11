@@ -242,16 +242,22 @@ char& MyString::operator[](size_t index) {
     return data_[index];
 }
 
+const char& MyString::operator[](size_t index) const {
+        if (index >= size_) {
+            throw out_of_range("Индекс выходит за границы");
+        }
+        return data_[index];
+    }
+
 ostream& operator<<(ostream& os, const MyString& str) {
     os << str.c_str();
     return os;
 }
 
 istream& operator>>(istream& is, MyString& str) {
-    string temp;
-    getline(is, temp);
-    
-    str = temp.c_str(); 
-    
+    char buffer[1024];
+    if (is.getline(buffer, sizeof(buffer))) {
+        str = buffer;
+    }
     return is;
 }

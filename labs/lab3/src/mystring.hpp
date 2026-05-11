@@ -51,10 +51,7 @@ public:
     }
 
     char& operator[](size_t index);
-    const char& operator[](size_t index) const {
-        if (index >= size_) throw out_of_range("Индекс выходит за границы");
-        return data_[index];
-    }
+    const char& operator[](size_t index) const;
 };
 MyString operator+(const MyString& lhs, const MyString& rhs);
 MyString operator+(const MyString& lhs, const char* rhs);
