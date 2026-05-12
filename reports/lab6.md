@@ -214,8 +214,8 @@
             echo "Файл $FILE_MD не найден для конвертации"
         fi
         ```
-    * Выдача прав на выполнениее:
+    * Выдача прав на выполнение:
         ```
-        chmod +x /C/Users/aleks/Desktop/strpo/server_repo.git/hooks/post-receive
+        chmod +x /C/Users/aleks/Desktop/server_repo.git/hooks/post-receive
         ```
     * Тестовый `push` прошел успешно:
