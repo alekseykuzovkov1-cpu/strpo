@@ -190,7 +190,7 @@
 
         # настройки путей
         TARGET="/C/Users/aleks/Desktop/www"
-        GIT_DIR="/C/Users/aleks/Desktop/strpo/server_repo.git"
+        GIT_DIR="/C/Users/aleks/Desktop/server_repo.git"
         BRANCH="strpo-lab6"
 
         # создаем целевую папку, если ее нет
