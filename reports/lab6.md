@@ -218,4 +218,70 @@
         ```
         chmod +x /C/Users/aleks/Desktop/server_repo.git/hooks/post-receive
         ```
-    * Тестовый `push` прошел успешно:
+    * В ходе тестового пуша получаем html-файл, значит пуш прошел успешно, при изменениях html-файл успешно обновляется:
+        ```
+        git commit -m "тест конвертации"
+        git push local-server strpo-lab6
+        ```
+        ![html](image-4.png)
+
+### 3. Сборка с помощью CMake
+
+* `CMake` — это не система сборки сама по себе, а генератор, который создает файлы для других систем (например, для Make или Visual Studio). Он позволяет описывать процесс сборки на языке высокого уровня
+
+* Был установлен CMake с помощью команды ` winget install kitware.cmake`:
+    ```
+    winget install kitware.cmake
+    Found CMake [Kitware.CMake] Version 4.3.2
+    This application is licensed to you by its owner.
+    Microsoft is not responsible for, nor does it grant any licenses to, third-party packages.
+    Downloading https://github.com/Kitware/CMake/releases/download/v4.3.2/cmake-4.3.2-windows-x86_64.msi
+    ██████████████████████████████  36.3 MB / 36.3 MB
+    Successfully verified installer hash
+    Starting package install...
+    Successfully installed
+    ```
+
+* Основые понятия CMake (проекты, цели, библиотеки, исполняемые файлы), конструкции для работы с этими сущностями:
+
+    * Основные понятия:
+
+        * Проект (Project): это весь программный продукт. В одном проекте может быть несколько исполняемых файлов и библиотек
+
+        * Цель (Target): это то, что CMake должен собрать. Основными целями являются либо исполняемый файл, либо библиотека. Почти все настройки в CMake (пути к заголовкам, зависимости) привязываются именно к конкретной цели
+
+        * Исполняемый файл (Executable): финальная программа, которую можно запустить (например, main.exe)
+
+        * Библиотека (Library): набор скомпилированного кода, который не запускается сам по себе, а используется другими целями. Бывают статическими (.lib, .a) и динамическими (.dll, .so)
+
+    * Основные конструкции:
+
+        * Для работы с этими сущностями используются следующие команды в файле `CMakeLists.txt`:
+
+            1. Инициализация проекта
+                ```
+                #минимально необходимая версия CMake
+                cmake_minimum_required(VERSION 3.10)
+
+                #название проекта и версия
+                project(MyDataStructuresProject VERSION 1.0)
+                ```
+            2. Создание сущностей
+
+                `add_executable(name sources)`:	создает исполняемый файл из исходников
+
+                `add_library(name TYPE sources)`: создает библиотеку. TYPE может быть STATIC или SHARED
+
+            3. Работа с зависимостями
+
+                `target_link_libraries(target private/public lib)`: связывает цель с библиотекой
+
+                `target_include_directories(target type path)`: указывает, где искать заголовочные файлы для цели
+
+    * Переменные и управление:
+
+        * set(VAR_NAME value): создание переменной
+        * ${VAR_NAME}: обращение к значению переменной
+        * message("Text"): вывод отладочного сообщения в консоль при генерации
+
+* Были переписаны цели сборки последней выполненной работы по "Структурам данных" c Make на CMake:
