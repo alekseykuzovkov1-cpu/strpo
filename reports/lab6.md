@@ -285,3 +285,130 @@
         * message("Text"): вывод отладочного сообщения в консоль при генерации
 
 * Были переписаны цели сборки последней выполненной работы по "Структурам данных" c Make на CMake:
+
+    * Был создан `CMakeLists.txt` в корневой папке проекта со следующим содержанием:
+        ```
+        cmake_minimum_required(VERSION 3.10)
+        project(DataStructures_Lab3)
+
+        # настройки стандарта C++
+        set(CMAKE_CXX_STANDARD 17)
+        set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+        # добавляем поддиректорию с исходниками библиотеки
+        add_subdirectory(src)
+
+        # сборка основного исполняемого файла
+        add_executable(lab3_app src/lab3.cpp)
+
+        # подключаем библиотеку к основному файлу
+        target_link_libraries(lab3_app PRIVATE lab3_lib)
+
+        # включаем поддержку тестирования
+        enable_testing()
+        add_subdirectory(test)
+        ```
+
+    * Был создан `src/CMakeLists.txt`, отвечающий за создание библиотеки из классов, со следующим содержанием:
+        ```
+        # cобираем все .cpp файлы в папке src, кроме основного lab3.cpp
+        file(GLOB LIB_SOURCES "*.cpp")
+        list(REMOVE_ITEM LIB_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/lab3.cpp")
+
+        # cоздаем статическую библиотеку
+        add_library(lab3_lib STATIC ${LIB_SOURCES})
+
+        # указываем, где искать заголовочные файлы
+        target_include_directories(lab3_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+        ```
+
+    * Был создан `test/CMakeLists.txt`, отвечающий за сборку тестов, со следующим содержанием:
+        ```
+        # поиск всех файлов с тестами
+        file(GLOB TEST_FILES "*.cpp")
+
+        foreach(test_file ${TEST_FILES})
+            # получаем имя файла без расширения для названия цели
+            get_filename_component(test_name ${test_file} NAME_WE)
+
+            # создаем исполняемый файл для каждого теста
+            add_executable(${test_name} ${test_file})
+
+            # линкуем с основной библиотекой
+            target_link_libraries(${test_name} PRIVATE lab3_lib)
+
+            # добавляем в систему CTest
+            add_test(NAME ${test_name} COMMAND ${test_name})
+        endforeach()
+        ```
+* Демонстрация работы CMake:
+
+    * Генерация файлов сборки
+        ```
+        cmake -B build
+        -- Building for: Visual Studio 17 2022
+        -- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.26200.
+        -- The C compiler identification is MSVC 19.44.35219.0
+        -- The CXX compiler identification is MSVC 19.44.35219.0
+        -- Detecting C compiler ABI info
+        -- Detecting C compiler ABI info - done
+        -- Check for working C compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe - skipped
+        -- Detecting C compile features
+        -- Detecting C compile features - done
+        -- Detecting CXX compiler ABI info
+        -- Detecting CXX compiler ABI info - done
+        -- Check for working CXX compiler: C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe - skipped
+        -- Detecting CXX compile features
+        -- Detecting CXX compile features - done
+        -- Configuring done (9.0s)
+        -- Generating done (0.1s)
+        -- Build files have been written to: C:/Users/aleks/Desktop/strpo/labs/lab3/build
+        ```
+
+    * Компиляция
+        ```
+        cmake --build build
+        Версия MSBuild 17.14.23+b0019275e для .NET Framework
+
+        1>Checking Build System
+        Building Custom Rule C:/Users/aleks/Desktop/strpo/labs/lab3/src/CMakeLists.tx
+        t
+        basefile.cpp
+        boolarray.cpp
+        matrix.cpp
+        mystring.cpp
+        notifications.cpp
+        notifications_oop.cpp
+        notifications_priority_queue.cpp
+        notificationsqueue.cpp
+        workerdb.cpp
+        Создание кода...
+        lab3_lib.vcxproj -> C:\Users\aleks\Desktop\strpo\labs\lab3\build\src\Debug\la
+        b3_lib.lib
+        Building Custom Rule C:/Users/aleks/Desktop/strpo/labs/lab3/CMakeLists.txt
+        lab3.cpp
+        lab3_app.vcxproj -> C:\Users\aleks\Desktop\strpo\labs\lab3\build\Debug\lab3_a
+        pp.exe
+        Building Custom Rule C:/Users/aleks/Desktop/strpo/labs/lab3/test/CMakeLists.t
+        xt
+        test_priority.cpp
+        test_priority.vcxproj -> C:\Users\aleks\Desktop\strpo\labs\lab3\build\test\De
+        bug\test_priority.exe
+        Building Custom Rule C:/Users/aleks/Desktop/strpo/labs/lab3/CMakeLists.txt
+        ```
+
+    * Запуск тестов
+        ```
+        cd build
+        ctest -С Debug
+        Test project C:/Users/aleks/Desktop/strpo/labs/lab3/build
+            Start 1: test_priority
+        1/1 Test #1: test_priority ....................   Passed    1.15 sec
+
+        100% tests passed, 0 tests failed out of 1
+
+        Total Test time (real) =   1.24 sec
+
+        ```
+
+### 4. Автоматизация задач CMake в git
