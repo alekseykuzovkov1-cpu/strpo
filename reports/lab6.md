@@ -412,3 +412,227 @@
         ```
 
 ### 4. Автоматизация задач CMake в git
+
+* В репозиторий была добавлена ветка `dev`
+    ```
+    git checkout -b dev
+    git push local-server dev
+    ```
+
+* Добавлен хук, который будет на каждый коммит в `dev` прогонять тесты CMake и обрывать коммит, если тесты не прошли
+
+    * В папке **.git/hooks/** в хуки "**pre-commit.sample**" и "**pre-marge-commit.sample**" (расширение нужно убрать для работы хука) были добавлены следующие изменения:
+        ```
+        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+        if [ "$CURRENT_BRANCH" = "dev" ]; then
+            echo "Запуск проверки сборки и тестов для ветки '$CURRENT_BRANCH'"
+
+            ROOT_DIR=$(pwd)
+            cd labs/lab3 || { echo "Ошибка: папка labs/lab3 не найдена!"; exit 1; }
+
+            if [ ! -d "build" ]; then
+                echo "Создание директории сборки..."
+                cmake -B build > /dev/null || { echo "Ошибка конфигурации CMake"; cd "$ROOT_DIR"; exit 1; }
+            fi
+
+            # сборка проекта
+            echo "Сборка проекта (Debug)..."
+            cmake --build build --config Debug > /dev/null
+            if [ $? -ne 0 ]; then
+                echo "Ошибка: проект не собирается! Коммит отклонен"
+                cd "$ROOT_DIR"
+                exit 1
+            fi
+
+            # запуск тестов
+            echo "Запуск тестов через CTest..."
+            ctest --test-dir build -C Debug --output-on-failure --no-compress-output
+                    
+            RESULT=$?
+            
+            cd "$ROOT_DIR"
+
+            if [ $RESULT -eq 0 ]; then
+                echo "Успех: все тесты пройдены"
+            else
+                echo "Ошибка: тесты провалены! Коммит отклонен"
+                exit 1
+            fi
+        fi
+        ```
+
+* Были проведены тесты хуков:
+    * Случай обычного коммита в `dev`:
+        ![проверка коммита](image.png)
+    * Случай `merge`:
+        ![проверка слияния](image-1.png)
+
+* Был добавлен хук для сборки библиотеки по коммиту в `dev`:
+    * Код, который мы добавляли в позапрошлом пункте в хуки "**pre-commit.sample**" и "**pre-marge-commit.sample**" (расширение нужно убрать для работы хука), был подредактирован для сборки библиотеки по коммиту:
+        ```
+        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+        if [ "$CURRENT_BRANCH" = "dev" ]; then
+            echo "Запуск проверки сборки и тестов для ветки '$CURRENT_BRANCH'"
+
+            ROOT_DIR=$(pwd)
+            cd labs/lab3 || { echo "Ошибка: папка labs/lab3 не найдена!"; exit 1; }
+
+            if [ ! -d "build" ]; then
+                echo "Создание директории сборки..."
+                cmake -B build > /dev/null || { echo "Ошибка конфигурации CMake"; cd "$ROOT_DIR"; exit 1; }
+            fi
+            
+            # НОВЫЙ КОД!!!
+            echo "Сборка библиотеки lab3_lib (Debug)..."
+            cmake --build build --config Debug --target lab3_lib > /dev/null
+            if [ $? -ne 0 ]; then
+                echo "Ошибка: библиотека не собирается! Коммит отклонен"
+                cd "$ROOT_DIR"
+                exit 1
+            fi
+            # НОВЫЙ КОД!!!
+
+            # сборка проекта
+            echo "Сборка проекта (Debug)..."
+            cmake --build build --config Debug > /dev/null
+            if [ $? -ne 0 ]; then
+                echo "Ошибка: проект не собирается! Коммит отклонен"
+                cd "$ROOT_DIR"
+                exit 1
+            fi
+
+            # запуск тестов
+            echo "Запуск тестов через CTest..."
+            ctest --test-dir build -C Debug --output-on-failure --no-compress-output
+                    
+            RESULT=$?
+            
+            cd "$ROOT_DIR"
+
+            if [ $RESULT -eq 0 ]; then
+                echo "Успех: библиотека собрана, все тесты пройдены"
+            else
+                echo "Ошибка: тесты провалены! Коммит отклонен"
+                exit 1
+            fi
+        fi
+        ```
+
+### 5. Автоматизация с помощью Github Actions
+
+* Основной синтаксис языка YAML и конструкции, которые можно задать этим языком
+    * ***Синтаксис***:
+
+        **YAML (Yet Another Markup Language / YAML Ain't Markup Language)** — это простой текстовый формат для конфигурационных файлов. Он человекочитаем и не использует скобки или теги. Вместо этого структура задается отступами
+
+        **Основные правила синтаксиса**:
+
+        1. Чувствительность к отступам: отступы определяют вложенность (структуру). Используются только пробелы (обычно по 2 или 4 пробела). Табуляции (\t) запрещены - они сломают парсер
+        2. Регистрозависимость: ключи build и Build - это разные ключи
+        3. Символ `:`: ключ и значение разделяются двоеточием с обязательным пробелом после него (key: value)
+        4. Комментарии: начинаются с символа #
+    
+    * ***Конструкции***:
+        1. **Cловари (Пары Ключ-Значение)**:
+            ```
+            project: lab3
+            language: cpp
+            ```
+        2. **Списки (Массивы)**: задаются дефисом с пробелом:
+            ```
+            branches:
+              - main
+              - dev
+            ```
+        3. **Вложенные структуры (Объекты)**:
+            ```
+            compiler:
+              name: gcc
+              version: 11
+            ```
+        4. **Многострочные строки**: если нужно написать многострочный скрипт bash (как в наших хуках), используются символы | (сохраняет переносы строк) или > (склеивает строки в одну):
+            ```
+            script: |
+              cmake -B build
+              cmake --build build
+            ```
+    
+* Основные возможности Github Actions и тарифы, доступные для использования
+    
+    * ***Основные возможности GitHub Actions***:
+
+        **GitHub Actions** — это встроенная система CI/CD от GitHub, которая позволяет автоматизировать сборку, тестирование и деплой кода прямо в репозитории
+
+        **Ключевые понятия**:
+        * **Workflow**: автоматизированная процедура, которая описывается в YAML-файле в папке .github/workflows/
+        * **Events**: триггеры, которые запускают воркфлоу (например: push в ветку dev, создание pull request, или запуск по расписанию)
+        * **Jobs**: набор шагов, выполняемых на одном виртуальном сервере. По умолчанию задачи выполняются параллельно
+        * **Steps**: конкретные команды. Это может быть запуск скрипта в консоли (run) или готовый плагин из маркетплейса GitHub (uses)
+        * **Runners**: виртуальные машины, на которых крутится код. GitHub предоставляет на выбор сервера с Linux (Ubuntu), Windows Server и macOS
+    
+    * ***Тарифные планы GitHub Actions***:
+
+        GitHub предоставляет Actions на всех тарифных планах, но с разным количеством бесплатных минут и ресурсов. Для публичных репозиториев GitHub Actions абсолютно бесплатны всегда и без ограничений по минутам.
+
+        Для приватных репозиториев действуют следующие тарифы (квоты обновляются каждый месяц):
+
+        * **GitHub Free**: 2000 CI/CD минут в месяц, 0$ за пользователя в месяц, 500 МБ объём хранилища артефактов
+        * **GitHub Pro**: 3000 CI/CD минут в месяц, 4$ за пользователя в месяц, 1 ГБ объём хранилища артефактов
+        * **GitHub Team**: 10000 CI/CD минут в месяц, 4$ за пользователя в месяц, 2 ГБ объём хранилища артефактов
+        * **GitHub Enterprice**: 50000 CI/CD минут в месяц, 21$ за пользователя в месяц, 50 ГБ объём хранилища артефактов
+    
+
+    Источники: 
+    * [Официальный сайт и спецификация YAML](https://yaml.org/)
+    * [Understanding GitHub Actions](https://docs.github.com/en/actions/get-started/understand-github-actions?versionId=free-pro-team%40latest&productId=actions)
+    * [Справочник по синтаксису Workflow](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)
+    * [Тарифы GitHub](https://github.com/pricing)
+
+* Добавление в репозиторий в Github определения ci-cd пайплайнов для автоматизации задач CMake из прошлого раздела
+    * на ветке `dev` была создана папка `.github` с папкой `workflows` внутри. В папке `workflows` был создан файл `cmake-ci.yml` со следующим содержанием:
+        ```
+        name: CMake CI/CD Pipeline
+
+        # пайплайн запускается при каждом пуше или мерже в ветку dev
+        on:
+          push:
+            branches: [ "dev" ]
+          pull_request:
+            branches: [ "dev" ]
+
+        jobs:
+          build-and-test:
+            # использование виртуальной машины на Windows с предустановленным MSVC и CMake
+            runs-on: windows-latest
+
+            steps:
+            # клонируем репозиторий на удаленный сервер GitHub
+              - name: Checkout repository
+                uses: actions/checkout@v4
+
+            # настраиваем окружение CMake и генерируем файлы сборки
+            # так как CMakeLists.txt лежит в labs/lab3, явно указываем рабочую директорию
+              - name: Configure CMake
+                run: cmake -B build
+                working-directory: labs/lab3
+
+            # изолированная сборка только библиотеки lab3_lib
+              - name: Build Library (lab3_lib)
+                run: cmake --build build --config Debug --target lab3_lib
+                working-directory: labs/lab3
+
+            # полная сборка проекта (включая исполняемый файл тестов)
+              - name: Build Entire Project
+                run: cmake --build build --config Debug
+                working-directory: labs/lab3
+
+            # автоматический прогон тестов через CTest
+              - name: Run Tests
+                run: ctest --test-dir build -C Debug --output-on-failure
+                working-directory: labs/lab3        
+        ```
+    
+    * После пуша в репозиторий результат показывается во вкладке Actions на странице проекта в GitHub
+        ![actions](image-2.png)
