@@ -2,9 +2,9 @@ name: CMake CI/CD Pipeline
 
 # пайплайн запускается при каждом пуше или мерже в ветку dev
 on:
-push:
+  push:
     branches: [ "dev" ]
-pull_request:
+  pull_request:
     branches: [ "dev" ]
 
 jobs:
