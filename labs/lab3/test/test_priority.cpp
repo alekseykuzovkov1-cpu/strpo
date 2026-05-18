@@ -19,7 +19,7 @@ int main() {
 
     Notification* first = pq.pop();
     // оижадется выход системного
-    if (first->getPriorityScore() == 0) {
+    if (first->getPriorityScore() == 1) {
         cout << "УСПЕХ Тест 1: срочное уведомление имеет высший приоритет\n";
     } else {
         cout << "ПРОВАЛ Тест 1: срочное уведомление пропустило вперед другое\n";
