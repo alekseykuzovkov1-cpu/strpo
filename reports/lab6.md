@@ -420,6 +420,42 @@
 
 * Добавлен хук, который будет на каждый коммит в `dev` прогонять тесты CMake и обрывать коммит, если тесты не прошли
 
-    * В папке **.git/hooks/** в хук "**pre-commit.sample**" (расширение нужно убрать для работы хука) были добавлены следующие изменения:
+    * В папке **.git/hooks/** в хуки "**pre-commit.sample**" и "**pre-marge-commit.sample**" (расширение нужно убрать для работы хука) были добавлены следующие изменения:
         ```
+        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+        if [ "$CURRENT_BRANCH" = "dev" ]; then
+            echo "Запуск проверки сборки и тестов для ветки '$CURRENT_BRANCH'"
+
+            if [ ! -d "build" ]; then
+                echo "Создание директории сборки..."
+                cmake -B build > /dev/null || { echo "Ошибка конфигурации CMake"; exit 1; }
+            fi
+
+            # сборка проекта
+            echo "Сборка проекта (Debug)..."
+            cmake --build build --config Debug > /dev/null
+            if [ $? -ne 0 ]; then
+                echo "Ошибка: проект не собирается! Коммит отклонен"
+                exit 1
+            fi
+
+            # запуск тестов
+            echo "Запуск тестов через CTest..."
+            # используем -C Debug для Windows
+            ctest --test-dir build -C Debug --output-on-failure
+
+            RESULT=$?
+            if [ $RESULT -eq 0 ]; then
+                echo "Успех: все тесты пройдены"
+            else
+                echo "Ошибка: тесты провалены! Коммит отклонен"
+                exit 1
+            fi
+        fi
+
+        exit 0
         ```
+
+* Были проведены тесты хуков:
+    *
