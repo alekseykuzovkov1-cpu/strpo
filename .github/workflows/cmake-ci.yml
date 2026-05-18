@@ -8,32 +8,32 @@ pull_request:
     branches: [ "dev" ]
 
 jobs:
-build-and-test:
+  build-and-test:
     # использование виртуальной машины на Windows с предустановленным MSVC и CMake
     runs-on: windows-latest
 
     steps:
     # клонируем репозиторий на удаленный сервер GitHub
-    - name: Checkout repository
-    uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
     # настраиваем окружение CMake и генерируем файлы сборки
     # так как CMakeLists.txt лежит в labs/lab3, явно указываем рабочую директорию
-    - name: Configure CMake
-    run: cmake -B build
-    working-directory: labs/lab3
+      - name: Configure CMake
+        run: cmake -B build
+        working-directory: labs/lab3
 
     # изолированная сборка только библиотеки lab3_lib
-    - name: Build Library (lab3_lib)
-    run: cmake --build build --config Debug --target lab3_lib
-    working-directory: labs/lab3
+      - name: Build Library (lab3_lib)
+        run: cmake --build build --config Debug --target lab3_lib
+        working-directory: labs/lab3
 
     # полная сборка проекта (включая исполняемый файл тестов)
-    - name: Build Entire Project
-    run: cmake --build build --config Debug
-    working-directory: labs/lab3
+      - name: Build Entire Project
+        run: cmake --build build --config Debug
+        working-directory: labs/lab3
 
     # автоматический прогон тестов через CTest
-    - name: Run Tests
-    run: ctest --test-dir build -C Debug --output-on-failure
-    working-directory: labs/lab3
+      - name: Run Tests
+        run: ctest --test-dir build -C Debug --output-on-failure
+        working-directory: labs/lab3
